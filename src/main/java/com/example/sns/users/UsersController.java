@@ -27,23 +27,23 @@ public class UsersController {
     }
 
     @GetMapping("/{username}")
-    public UserProfileDto profile(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable String username) {
-        User viewer = auth.currentUser(authorization);
+    public UserProfileDto profile(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable String username) {
+        User viewer = auth.currentUser(authorization, session);
         User user = findByUsername(username);
         return UserProfileDto.from(user, follows.countByFollowee(user), follows.countByFollower(user), follows.existsByFollowerAndFollowee(viewer, user));
     }
 
     @GetMapping("/{username}/posts")
-    public List<PostDto> userPosts(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable String username) {
-        User viewer = auth.currentUser(authorization);
+    public List<PostDto> userPosts(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable String username) {
+        User viewer = auth.currentUser(authorization, session);
         User user = findByUsername(username);
         return posts.findByAuthorOrderByCreatedAtDesc(user).stream().map(post -> PostDto.from(post, viewer, likes)).toList();
     }
 
     @PostMapping("/{username}/follow")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void follow(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable String username) {
-        User viewer = auth.currentUser(authorization);
+    public void follow(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable String username) {
+        User viewer = auth.currentUser(authorization, session);
         User followee = findByUsername(username);
         if (viewer.getId().equals(followee.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "自分はフォローできません");
@@ -55,15 +55,15 @@ public class UsersController {
 
     @DeleteMapping("/{username}/follow")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unfollow(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable String username) {
-        User viewer = auth.currentUser(authorization);
+    public void unfollow(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable String username) {
+        User viewer = auth.currentUser(authorization, session);
         User followee = findByUsername(username);
         follows.findByFollowerAndFollowee(viewer, followee).ifPresent(follows::delete);
     }
 
     @PatchMapping("/me")
-    public UserDto updateMe(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestBody UpdateProfileRequest request) {
-        User viewer = auth.currentUser(authorization);
+    public UserDto updateMe(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @RequestBody UpdateProfileRequest request) {
+        User viewer = auth.currentUser(authorization, session);
         viewer.updateProfile(request.displayName(), request.bio(), request.avatarUrl());
         return UserDto.from(users.save(viewer));
     }
@@ -79,4 +79,3 @@ public class UsersController {
         }
     }
 }
-

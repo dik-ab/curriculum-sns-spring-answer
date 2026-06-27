@@ -21,7 +21,8 @@ public class WebConfig {
                 registry.addMapping("/**")
                     .allowedOrigins(frontendUrl)
                     .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")
-                    .allowedHeaders("*");
+                    .allowedHeaders("*")
+                    .allowCredentials(true);
             }
         };
     }
@@ -34,4 +35,3 @@ public class WebConfig {
             .build();
     }
 }
-

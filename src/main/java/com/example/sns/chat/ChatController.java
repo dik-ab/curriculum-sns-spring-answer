@@ -24,8 +24,8 @@ public class ChatController {
     }
 
     @GetMapping
-    public List<ConversationDto> index(@RequestHeader(value = "Authorization", required = false) String authorization) {
-        User viewer = auth.currentUser(authorization);
+    public List<ConversationDto> index(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session) {
+        User viewer = auth.currentUser(authorization, session);
         return conversations.findByUserOneOrUserTwo(viewer, viewer).stream()
             .map(conversation -> ConversationDto.from(conversation, viewer, messages))
             .sorted(Comparator.comparing((ConversationDto dto) -> dto.lastMessage() == null ? "" : dto.lastMessage().createdAt()).reversed())
@@ -33,8 +33,8 @@ public class ChatController {
     }
 
     @PostMapping
-    public ConversationDto create(@RequestHeader(value = "Authorization", required = false) String authorization, @RequestBody CreateConversationRequest request) {
-        User viewer = auth.currentUser(authorization);
+    public ConversationDto create(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @RequestBody CreateConversationRequest request) {
+        User viewer = auth.currentUser(authorization, session);
         User partner = users.findByUsername(request.username())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ユーザーがありません"));
         if (viewer.getId().equals(partner.getId())) {
@@ -47,15 +47,15 @@ public class ChatController {
     }
 
     @GetMapping("/{id}/messages")
-    public List<MessageDto> messages(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id) {
-        User viewer = auth.currentUser(authorization);
+    public List<MessageDto> messages(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable Long id) {
+        User viewer = auth.currentUser(authorization, session);
         Conversation conversation = findConversationFor(viewer, id);
         return this.messages.findByConversationOrderByCreatedAtAsc(conversation).stream().map(MessageDto::from).toList();
     }
 
     @PostMapping("/{id}/messages")
-    public MessageDto createMessage(@RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable Long id, @RequestBody CreateMessageRequest request) {
-        User viewer = auth.currentUser(authorization);
+    public MessageDto createMessage(@RequestHeader(value = "Authorization", required = false) String authorization, @CookieValue(value = "sns_session", required = false) String session, @PathVariable Long id, @RequestBody CreateMessageRequest request) {
+        User viewer = auth.currentUser(authorization, session);
         Conversation conversation = findConversationFor(viewer, id);
         if (request.content() == null || request.content().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "メッセージを入力してください");

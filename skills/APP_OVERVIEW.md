@@ -22,9 +22,9 @@
 - PostgreSQL 16（Docker Compose）
 - H2（テスト用）
 
-## 現行Reactとの接続
+## 認証方式
 
-React側は `Authorization: Bearer <token>` を送るため、このSpring版もログイン時に `accessToken` を返します。トークンは `session_tokens` テーブルに保存します。
+ログイン時に `sns_session` Cookieを発行します。CookieはHttpOnly、SameSite=Lax、開発環境ではSecure=falseです。HTTP APIとSocket.IOサーバーは、このCookieから現在のユーザーを復元します。
 
 ## リアルタイム
 

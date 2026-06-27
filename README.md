@@ -82,5 +82,5 @@ pnpm run dev
 
 - デプロイやインフラ構築はこのリポジトリでは扱いません。
 - DBだけDocker Composeで起動し、APIはローカルのSpring Bootで実行します。
-- React互換を優先し、ログイン成功時は `{ "accessToken": "..." }` を返します。
+- ログイン成功時は `sns_session` をHttpOnly Cookieで発行します。React側は `credentials: "include"` でAPIを呼びます。
 - `SOCKET_IO_ENABLED=false` を設定するとSocket.IOサーバーだけ無効化できます。

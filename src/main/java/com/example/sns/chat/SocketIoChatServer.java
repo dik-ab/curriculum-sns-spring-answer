@@ -39,6 +39,19 @@ public class SocketIoChatServer {
         server = new SocketIOServer(config);
         SocketIONamespace namespace = server.addNamespace("/chat");
 
+        namespace.addConnectListener(client -> {
+            String token = extractCookie(client.getHandshakeData().getHttpHeaders().get("Cookie"), "sns_session");
+            if (token == null || token.isBlank()) {
+                return;
+            }
+            try {
+                User user = chat.authenticate(token);
+                client.set("userId", user.getId());
+            } catch (RuntimeException error) {
+                client.disconnect();
+            }
+        });
+
         namespace.addAuthTokenListener((authToken, client) -> {
             String token = extractToken(authToken);
             if (token == null || token.isBlank()) {
@@ -87,6 +100,17 @@ public class SocketIoChatServer {
             return token instanceof String value ? value : null;
         }
         return authToken instanceof String value ? value : null;
+    }
+
+    private static String extractCookie(String header, String name) {
+        if (header == null || header.isBlank()) return null;
+        for (String part : header.split(";")) {
+            String[] pair = part.trim().split("=", 2);
+            if (pair.length == 2 && pair[0].equals(name)) {
+                return pair[1];
+            }
+        }
+        return null;
     }
 
     private static String room(Long conversationId) {

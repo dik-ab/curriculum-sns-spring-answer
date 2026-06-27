@@ -1,11 +1,11 @@
 package com.example.sns;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.example.sns.auth.EmailVerificationTokenRepository;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -43,16 +43,15 @@ class CurriculumSnsSpringAnswerApplicationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message", is("メールアドレスを確認しました")));
 
-        String accessToken = mvc.perform(post("/auth/login")
+        Cookie session = mvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"alice@example.com\",\"password\":\"password123\"}"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.accessToken", not("")))
-            .andReturn().getResponse().getContentAsString()
-            .replaceAll(".*\"accessToken\":\"([^\"]+)\".*", "$1");
+            .andExpect(jsonPath("$.message", is("ログインしました")))
+            .andReturn().getResponse().getCookie("sns_session");
 
         mvc.perform(post("/posts")
-                .header("Authorization", "Bearer " + accessToken)
+                .cookie(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"content\":\"First Spring SNS post\"}"))
             .andExpect(status().isOk())

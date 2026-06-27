@@ -21,6 +21,13 @@ public class AuthService {
     }
 
     public User currentUser(String authorizationHeader) {
+        return currentUser(authorizationHeader, null);
+    }
+
+    public User currentUser(String authorizationHeader, String sessionCookie) {
+        if (sessionCookie != null && !sessionCookie.isBlank()) {
+            return currentUserByToken(sessionCookie);
+        }
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "ログインが必要です");
         }
