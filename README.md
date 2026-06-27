@@ -70,6 +70,8 @@ pnpm run dev
 - Socket.IO: `http://localhost:8001/chat`
 - React側 `.env`: `VITE_API_URL="http://localhost:8000"`、`VITE_SOCKET_URL="http://localhost:8001"`
 
+The shared React frontend authenticates Socket.IO through the `sns_session` HttpOnly Cookie. This repo also keeps an auth token listener for compatibility checks, but the curriculum path does not store tokens in browser JavaScript.
+
 ## テスト
 
 ```bash
